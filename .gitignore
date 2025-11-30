@@ -1,0 +1,22 @@
+# Swift / Xcode
+.build/
+.DS_Store
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+
+# Swift Package Manager
+Packages/
+.swiftpm/
+Package.resolved
+
+# Vapor / generated
+.run/
+Public/
+Tests/.build/
+
+# Logs
+*.log
+
+# macOS
+*.swp
+*.lock
