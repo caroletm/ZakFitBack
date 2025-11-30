@@ -29,7 +29,7 @@ public func configure(_ app: Application) async throws {
                 print(response)
             }
         } else {
-            print("⚠️ Le driver SQL n'est pas disponible (cast vers SQLDatabase impossible)")
+            print("⚠️ Le driver SQL n'est pas disponible (cast vers SQLDatabase impossiblee)")
         }
 
 
