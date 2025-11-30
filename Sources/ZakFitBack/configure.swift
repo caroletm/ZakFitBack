@@ -21,7 +21,18 @@ public func configure(_ app: Application) async throws {
         database: Environment.get("DATABASE_NAME") ?? "ZakFit"
     ), as: .mysql)
 
-    app.migrations.add(CreateTodo())
+//    app.migrations.add(CreateTodo())
+    
+    app.migrations.add(CreateUser())
+    app.migrations.add(CreateObjectif())
+    app.migrations.add(CreateActivite())
+    app.migrations.add(CreateRepas())
+    app.migrations.add(CreateAliment())
+    app.migrations.add(CreateConso())
+    app.migrations.add(UpdateConsoFKeyRepas())
+    app.migrations.add(UpdateConsoFKeyAliment())
+    
+    try await app.autoMigrate()
     
         //Test rapide de connexion
         if let sql = app.db(.mysql) as? (any SQLDatabase) {
@@ -29,9 +40,8 @@ public func configure(_ app: Application) async throws {
                 print(response)
             }
         } else {
-            print("⚠️ Le driver SQL n'est pas disponible (cast vers SQLDatabase impossiblee)")
+            print("⚠️ Le driver SQL n'est pas disponible (cast vers SQLDatabase impossible)")
         }
-
 
     // register routes
     try routes(app)
