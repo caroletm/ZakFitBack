@@ -19,7 +19,7 @@ final class User : Model, Content, @unchecked Sendable {
     @Field(key: "nom") var nom: String
     @Field(key: "prenom") var prenom: String
     @Field(key: "taille") var taille: Int
-    @Field(key: "poids") var Int: Double
+    @Field(key: "poids") var poids: Double
     @Field(key: "dateNaissance") var dateNaissance: Date
     @Enum(key: "sexe") var sexe: UserGender
     @Enum(key: "foodPreferences") var foodPreferences: UserPreferences
@@ -41,7 +41,7 @@ final class User : Model, Content, @unchecked Sendable {
         self.nom = nom
         self.prenom = prenom
         self.taille = taille
-        self.Int = poids
+        self.poids = poids
         self.dateNaissance = dateNaissance
         self.sexe = sexe
         self.foodPreferences = foodPreferences

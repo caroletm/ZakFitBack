@@ -20,13 +20,13 @@ final class Activite : Model, Content, @unchecked Sendable {
     
     init() {}
     
-    init(id: UUID? = nil, typeActivite: TypeActivite, date: Date, duree: Int, caloriesBrulees: Double) {
+    init(id: UUID? = nil, typeActivite: TypeActivite, date: Date, duree: Int, caloriesBrulees: Double, user_Id : User.IDValue ) {
         self.id = id ?? UUID()
         self.typeActivite = typeActivite
         self.date = date
         self.duree = duree
         self.caloriesBrulees = caloriesBrulees
+        self.$user.id = user_Id
     }
-
 }
 

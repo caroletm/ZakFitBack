@@ -23,7 +23,7 @@ final class Conso : Model, Content, @unchecked Sendable {
     @Parent(key: "aliment_Id") var aliments: Aliment
     
     init() {}
-    init(id : UUID? = nil, aliment : String, portion: Portion, quantite: Int, calories: Double, proteines: Double, glucides: Double, lipides: Double) {
+    init(id : UUID? = nil, aliment : String, portion: Portion, quantite: Int, calories: Double, proteines: Double, glucides: Double, lipides: Double, repas_Id: Repas.IDValue, aliment_Id: Aliment.IDValue) {
         self.id = id ?? UUID()
         self.aliment = aliment
         self.portion = portion
@@ -32,6 +32,8 @@ final class Conso : Model, Content, @unchecked Sendable {
         self.proteines = proteines
         self.glucides = glucides
         self.lipides = lipides
+        self.$repas.id = repas_Id
+        self.$aliments.id = aliment_Id
     }
 
 }

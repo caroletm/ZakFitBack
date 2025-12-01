@@ -14,7 +14,7 @@ final class Objectif : Model, Content, @unchecked Sendable {
     @ID(key: .id) var id : UUID?
     @Enum(key: "objectifGlobal") var objectifGlobal: UserObjectifGlobal
     @Field(key: "dateDebut") var dateDebut: Date
-    @Timestamp(key: "dateFin", on: .update) var dateFin: Date?
+    @Field(key: "dateFin") var dateFin: Date?
     @Enum(key: "typeObjectif") var typeObjectif: TypeObjectif
     @Field(key: "poidsCible") var poidsCible: Double?
     @Field(key: "caloriesParJour") var caloriesParJour: Double?
@@ -27,11 +27,12 @@ final class Objectif : Model, Content, @unchecked Sendable {
     @Parent(key: "user_Id") var user: User
     
     init() {}
-    init(id: UUID? = nil, objectifGlobal: UserObjectifGlobal, dateDebut: Date, typeObjectif: TypeObjectif, poidsCible: Double?, caloriesParJour: Double?, proteines: Double?, glucides: Double?, lipides: Double?, minsActivité: Int?, caloriesBruleesParJour: Double?, nbEntrainementsHebdo: Int?) {
+    init(id: UUID? = nil, objectifGlobal: UserObjectifGlobal, dateDebut: Date, dateFin : Date?, typeObjectif: TypeObjectif, poidsCible: Double?, caloriesParJour: Double?, proteines: Double?, glucides: Double?, lipides: Double?, minsActivité: Int?, caloriesBruleesParJour: Double?, nbEntrainementsHebdo: Int?, user_Id: User.IDValue) {
         
         self.id = id ?? UUID()
         self.objectifGlobal = objectifGlobal
         self.dateDebut = dateDebut
+        self.dateFin = dateFin
         self.typeObjectif = typeObjectif
         self.poidsCible = poidsCible
         self.caloriesParJour = caloriesParJour
@@ -41,6 +42,7 @@ final class Objectif : Model, Content, @unchecked Sendable {
         self.minsActivité = minsActivité
         self.caloriesBruleesParJour = caloriesBruleesParJour
         self.nbEntrainementsHebdo = nbEntrainementsHebdo
+        self.$user.id = user_Id
     }
 
 }

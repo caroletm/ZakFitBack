@@ -22,6 +22,7 @@ struct CreateUser: AsyncMigration {
             .case("vegan")
             .case("glutenFree")
             .case( "lactoseIntolerant")
+            .case("none")
             .create()
         
         let UserActivityLevel = try await db.enum("UserActivityLevel")
