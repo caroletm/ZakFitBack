@@ -29,6 +29,9 @@ public func configure(_ app: Application) async throws {
     app.migrations.add(CreateRepas())
     app.migrations.add(CreateAliment())
     app.migrations.add(CreateConso())
+    app.migrations.add(UpdateObjectif())
+    app.migrations.add(UpdateRepas())
+    app.migrations.add(UpdateActivite())
     app.migrations.add(UpdateConsoFKeyRepas())
     app.migrations.add(UpdateConsoFKeyAliment())
     
