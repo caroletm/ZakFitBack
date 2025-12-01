@@ -20,11 +20,12 @@ final class Repas : Model, Content, @unchecked Sendable {
     
     init() {}
     
-    init(id: UUID? = nil, typeRepas: TypeRepas, date: Date, calories: Double) {
+    init(id: UUID? = nil, typeRepas: TypeRepas, date: Date, calories: Double, user_Id : User.IDValue) {
         self.id = id ?? UUID()
         self.typeRepas = typeRepas
         self.date = date
         self.calories = calories
+        self.$user.id = user_Id
     }
    
 
