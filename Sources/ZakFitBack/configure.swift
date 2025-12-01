@@ -46,6 +46,15 @@ public func configure(_ app: Application) async throws {
     jsonDecoder.dateDecodingStrategy = .secondsSince1970
     ContentConfiguration.global.use(decoder: jsonDecoder, for: .json)
     
+    // Pour accepter les dates ISO8601 dans tout ton backend
+    let decoder = JSONDecoder()
+    decoder.dateDecodingStrategy = .iso8601
+    ContentConfiguration.global.use(decoder: decoder, for: .json)
+
+    let encoder = JSONEncoder()
+    encoder.dateEncodingStrategy = .iso8601
+    ContentConfiguration.global.use(encoder: encoder, for: .json)
+    
         //Test rapide de connexion
         if let sql = app.db(.mysql) as? (any SQLDatabase) {
             sql.raw("SELECT 1").run().whenComplete { response in
@@ -54,7 +63,6 @@ public func configure(_ app: Application) async throws {
         } else {
             print("⚠️ Le driver SQL n'est pas disponible (cast vers SQLDatabase impossible)")
         }
-    
 
 
     // register routes
