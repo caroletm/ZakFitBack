@@ -45,7 +45,7 @@ public func configure(_ app: Application) async throws {
     
     try await app.autoMigrate()
     
-    // Utiliser un encodage de date en timestamp
+//     Utiliser un encodage de date en timestamp
 //    let jsonEncoder = JSONEncoder()
 //    jsonEncoder.dateEncodingStrategy = .secondsSince1970
 //    ContentConfiguration.global.use(encoder: jsonEncoder, for: .json)
@@ -53,7 +53,17 @@ public func configure(_ app: Application) async throws {
 //    let jsonDecoder = JSONDecoder()
 //    jsonDecoder.dateDecodingStrategy = .secondsSince1970
 //    ContentConfiguration.global.use(decoder: jsonDecoder, for: .json)
-//    
+//
+    
+    
+    let jsonEncoder = JSONEncoder()
+    jsonEncoder.dateEncodingStrategy = .iso8601
+    ContentConfiguration.global.use(encoder: jsonEncoder, for: .json)
+
+    let jsonDecoder = JSONDecoder()
+    jsonDecoder.dateDecodingStrategy = .iso8601
+    ContentConfiguration.global.use(decoder: jsonDecoder, for: .json)
+    
         //Test rapide de connexion
         if let sql = app.db(.mysql) as? (any SQLDatabase) {
             sql.raw("SELECT 1").run().whenComplete { response in

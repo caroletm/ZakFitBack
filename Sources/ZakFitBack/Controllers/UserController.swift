@@ -169,16 +169,27 @@ struct UserController : RouteCollection {
     @Sendable
     func updateUserById(_ req: Request) async throws -> UserDTO {
         let dto = try req.content.decode(UserUpdateDTO.self)
+        print("DTO reçu :", dto)
         
-        guard let id = req.parameters.get("id", as: UUID.self),
-              let user = try await User.find(id, on: req.db) else {
-            throw Abort(.notFound)
+        let payload = try req.auth.require(UserPayload.self)
+        
+        guard let idParam = req.parameters.get("id", as: UUID.self) else {
+            throw Abort(.badRequest, reason: "ID utilisateur manquant")
         }
+        
+        guard idParam == payload.id else {
+            throw Abort(.forbidden, reason: "Vous pouvez modifier que votre profil")
+        }
+        
+        guard let user = try await User.find(payload.id, on: req.db) else {
+            throw Abort(.notFound, reason: "Utilisateur introuvable")
+        }
+        
         
         if let newEmail = dto.email {
             if try await User.query(on: req.db)
                 .filter(\.$email == newEmail)
-                .filter(\.$id != id)
+                .filter(\.$id != user.id!)
                 .first() != nil {
                 throw Abort(.badRequest, reason: "Cet email est déjà utilisé.")
             }
@@ -187,7 +198,7 @@ struct UserController : RouteCollection {
         if let newUsername = dto.username {
             if try await User.query(on: req.db)
                 .filter(\.$username == newUsername)
-                .filter(\.$id != id)
+                .filter(\.$id != user.id!)
                 .first() != nil {
                 throw Abort(.badRequest, reason: "Ce nom d'utilisateur est déjà utilisé.")
             }
@@ -199,6 +210,19 @@ struct UserController : RouteCollection {
             }
             user.motDePasse = try Bcrypt.hash(newPassword)
         }
+        
+        // Mise à jour des autres champs
+            if let image = dto.image { user.image = image }
+            if let nom = dto.nom { user.nom = nom }
+            if let prenom = dto.prenom { user.prenom = prenom }
+            if let taille = dto.taille { user.taille = taille }
+            if let poids = dto.poids { user.poids = poids }
+            if let sexe = dto.sexe { user.sexe = sexe }
+            if let dateNaissance = dto.dateNaissance { user.dateNaissance = dateNaissance }
+            if let foodPreferences = dto.foodPreferences { user.foodPreferences = foodPreferences }
+            if let activityLevel = dto.activityLevel { user.activityLevel = activityLevel }
+            
+        print("User avant save :", user)
         try await user.save(on: req.db)
         
         return UserDTO(
