@@ -11,19 +11,26 @@ import Fluent
 struct RepasController : RouteCollection {
     func boot(routes: any RoutesBuilder) throws {
         let repas = routes.grouped("repas")
-        repas.get(use: getAllRepas)
-        repas.post(use: createRepas)
         
-        repas.group(":id") { repas in
+        let protectedRoutes = repas.grouped(JWTMiddleware())
+        protectedRoutes.get(use: getAllRepas)
+        protectedRoutes.post(use: createRepas)
+        
+        protectedRoutes.group(":id") { repas in
             repas.get(use: getRepasById)
             repas.delete(use: deleteRepasById)
         }
     }
-//
+
     //GET
     @Sendable
     func getAllRepas(_ req: Request) async throws -> [RepasDTO] {
+        
+        let payload = try req.auth.require(UserPayload.self)
+        let userId = payload.id
+        
         let repas = try await Repas.query(on: req.db)
+            .filter(\.$user.$id == userId)
             .with(\.$consos)
             .all()
 
@@ -52,9 +59,21 @@ struct RepasController : RouteCollection {
     //GET BY ID
     @Sendable
     func getRepasById(_ req: Request) async throws -> Repas {
-        guard let repas = try await Repas.find(req.parameters.get("id"), on: req.db) else {
+        
+        let payload = try req.auth.require(UserPayload.self)
+        let userId = payload.id
+    
+        guard let id = req.parameters.get("id", as: UUID.self) else {
+            throw Abort(.badRequest, reason: "ID invalide")
+        }
+        
+        guard let repas = try await Repas.query(on: req.db)
+            .filter(\.$id == id)
+            .filter(\.$user.$id == userId)
+            .first() else {
             throw Abort(.notFound)
         }
+        
         return repas
     }
     
@@ -63,16 +82,14 @@ struct RepasController : RouteCollection {
     func createRepas(_ req: Request) async throws -> RepasDTO {
         let dto = try req.content.decode(RepasDTO.self)
         
-        //        let payload = try req.auth.require(UserPayload.self)
-        //
-        //        guard let user = try await User.find(payload.id, on: req.db) else {
-        //            throw Abort(.notFound, reason: "Utilisateur introuvable")
-        //filtrer par le token de l'utilisateur)
-        
-        guard let user = try await User.query(on: req.db).first() else {
+        let payload = try req.auth.require(UserPayload.self)
+        guard let user = try await User.find(payload.id, on: req.db) else {
             throw Abort(.notFound, reason: "Utilisateur introuvable")
-        }
-        //            //sans token
+        } //        filtrer par le token de l'utilisateur)
+        
+//        guard let user = try await User.query(on: req.db).first() else {
+//            throw Abort(.notFound, reason: "Utilisateur introuvable")
+//        } //sans token
         
         let repas = Repas(
             id: UUID(),
@@ -132,9 +149,22 @@ struct RepasController : RouteCollection {
     //DELETE/repas/:id
     @Sendable
     func deleteRepasById(_ req: Request) async throws -> Response {
-        guard let repas = try await Activite.find(req.parameters.get("id"), on: req.db) else {
-            throw Abort(.badRequest, reason: "Id invalide")
+        
+        let payload = try req.auth.require(UserPayload.self)
+        
+        let userId = payload.id
+    
+        guard let id = req.parameters.get("id", as: UUID.self) else {
+            throw Abort(.badRequest, reason: "ID invalide")
         }
+    
+        guard let repas = try await Repas.query(on: req.db)
+            .filter(\.$id == id)
+            .filter(\.$user.$id == userId)
+            .first() else {
+            throw Abort(.notFound)
+        }
+        
         try await repas.delete(on: req.db)
         return Response(status: .noContent)
     }

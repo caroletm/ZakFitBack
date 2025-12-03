@@ -21,7 +21,15 @@ public func configure(_ app: Application) async throws {
         database: Environment.get("DATABASE_NAME") ?? "ZakFit"
     ), as: .mysql)
 
-//    app.migrations.add(CreateTodo())
+
+    
+    let corsMiddleware = CORSMiddleware(configuration: corsConfiguration)
+    app.middleware.use(corsMiddleware)
+    
+    app.caches.use(.memory)
+    app.gatekeeper.config = .init(maxRequests: 100, per: .minute)
+    app.middleware.use(GatekeeperMiddleware())
+
     
     app.migrations.add(CreateUser())
     app.migrations.add(CreateObjectif())
@@ -38,23 +46,14 @@ public func configure(_ app: Application) async throws {
     try await app.autoMigrate()
     
     // Utiliser un encodage de date en timestamp
-    let jsonEncoder = JSONEncoder()
-    jsonEncoder.dateEncodingStrategy = .secondsSince1970
-    ContentConfiguration.global.use(encoder: jsonEncoder, for: .json)
-    
-    let jsonDecoder = JSONDecoder()
-    jsonDecoder.dateDecodingStrategy = .secondsSince1970
-    ContentConfiguration.global.use(decoder: jsonDecoder, for: .json)
-    
-    // Pour accepter les dates ISO8601 dans tout ton backend
-    let decoder = JSONDecoder()
-    decoder.dateDecodingStrategy = .iso8601
-    ContentConfiguration.global.use(decoder: decoder, for: .json)
-
-    let encoder = JSONEncoder()
-    encoder.dateEncodingStrategy = .iso8601
-    ContentConfiguration.global.use(encoder: encoder, for: .json)
-    
+//    let jsonEncoder = JSONEncoder()
+//    jsonEncoder.dateEncodingStrategy = .secondsSince1970
+//    ContentConfiguration.global.use(encoder: jsonEncoder, for: .json)
+//
+//    let jsonDecoder = JSONDecoder()
+//    jsonDecoder.dateDecodingStrategy = .secondsSince1970
+//    ContentConfiguration.global.use(decoder: jsonDecoder, for: .json)
+//    
         //Test rapide de connexion
         if let sql = app.db(.mysql) as? (any SQLDatabase) {
             sql.raw("SELECT 1").run().whenComplete { response in

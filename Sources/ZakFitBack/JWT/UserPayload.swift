@@ -14,9 +14,9 @@ struct UserPayload: JWTPayload, Authenticatable {
     var expiration: Date
     
     func verify(using signer: JWTSigner) throws {
-        if self.expiration < Date() {
-            throw JWTError.invalidJWK
-        }
+//        if self.expiration < Date() {
+//            throw JWTError.invalidJWK
+//        }
     }
     init(id:UUID) {
         self.id = id

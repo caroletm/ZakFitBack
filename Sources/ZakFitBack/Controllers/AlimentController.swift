@@ -68,10 +68,10 @@ struct AlimentController : RouteCollection {
     //DELETE/aliment/:id
     @Sendable
     func deleteAlimentById(_ req: Request) async throws -> Response {
-        guard let activite = try await Activite.find(req.parameters.get("id"), on: req.db) else {
+        guard let aliment = try await Aliment.find(req.parameters.get("id"), on: req.db) else {
             throw Abort(.badRequest, reason: "Id invalide")
         }
-        try await activite.delete(on: req.db)
+        try await aliment.delete(on: req.db)
         return Response(status: .noContent)
     }
 }

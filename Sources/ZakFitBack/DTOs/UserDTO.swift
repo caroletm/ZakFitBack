@@ -22,19 +22,14 @@ struct UserCreateDTO: Content {
     var activityLevel: UserActivityLevel
 }
 
-// DTO public (informations non sensibles)
-struct UserPublicDTO: Content {
+// DTO
+struct UserDTO: Content {
     var id: UUID?
     var image: String
     var username: String
     var email: String
     var nom: String
     var prenom: String
-}
-
-// DTO santé (informations sensibles, accès JWT uniquement)
-struct UserHealthDTO: Content {
-    var id: UUID?
     var taille: Int
     var poids: Double
     var sexe: UserGender

@@ -18,8 +18,7 @@ struct UserController : RouteCollection {
         
         let protectedRoutes = users.grouped(JWTMiddleware())
         protectedRoutes.get("profile", use: profile)
-        protectedRoutes.patch(":id", use: updatePublicUserById)
-        protectedRoutes.patch("health", use: updateHealthUser)
+        protectedRoutes.patch(":id", use: updateUserById)
         
         users.group(":id") { user in
             user.get(use: getUserById)
@@ -29,16 +28,22 @@ struct UserController : RouteCollection {
     
     //GET
     @Sendable
-    func getAllUsers(_ req: Request) async throws -> [UserPublicDTO] {
+    func getAllUsers(_ req: Request) async throws -> [UserDTO] {
         let users = try await User.query(on: req.db).all()
         return users.map { user in
-            UserPublicDTO(
+            UserDTO(
                 id: user.id,
                 image: user.image,
                 username: user.username,
                 email: user.email,
                 nom: user.nom,
-                prenom: user.prenom
+                prenom: user.prenom,
+                taille: user.taille,
+                poids: user.poids,
+                sexe: user.sexe,
+                dateNaissance: user.dateNaissance,
+                foodPreferences: user.foodPreferences,
+                activityLevel: user.activityLevel
             )
         }
     }
@@ -52,10 +57,9 @@ struct UserController : RouteCollection {
         return user
     }
     
-    
     // POST /users
     @Sendable
-    func createUser(_ req: Request) async throws -> UserPublicDTO {
+    func createUser(_ req: Request) async throws -> UserDTO {
         let dto = try req.content.decode(UserCreateDTO.self)
         
         if try await User.query(on: req.db)
@@ -87,19 +91,29 @@ struct UserController : RouteCollection {
         
         try await user.save(on: req.db)
         
-        return UserPublicDTO(
+        return UserDTO(
             id: user.id,
             image: user.image,
             username: user.username,
             email: user.email,
             nom: user.nom,
-            prenom: user.prenom
+            prenom: user.prenom,
+            taille: user.taille,
+            poids: user.poids,
+            sexe: user.sexe,
+            dateNaissance: user.dateNaissance,
+            foodPreferences: user.foodPreferences,
+            activityLevel: user.activityLevel
         )
     }
     
     // LOGIN
+    struct LoginResponse: Content {
+        let token: String
+    }
+    
     @Sendable
-    func login(req: Request) async throws -> String {
+    func login(req: Request) async throws -> LoginResponse {
         let userData = try req.content.decode(LoginRequest.self)
         
         guard let user = try await User.query(on: req.db)
@@ -115,18 +129,23 @@ struct UserController : RouteCollection {
         let payload = UserPayload(id: user.id!)
         let signer = JWTSigner.hs256(key: "LOUVRE123")
         let token = try signer.sign(payload)
-        return token
+        return LoginResponse(token:token)
     }
     
     //PROFILE
     @Sendable
-    func profile(req: Request) async throws -> UserHealthDTO {
+    func profile(req: Request) async throws -> UserDTO {
         let payload = try req.auth.require(UserPayload.self)
         guard let user = try await User.find(payload.id, on: req.db) else {
             throw Abort(.notFound)
         }
-        return UserHealthDTO(
+        return UserDTO(
             id: user.id,
+            image: user.image,
+            username: user.username,
+            email: user.email,
+            nom: user.nom,
+            prenom: user.prenom,
             taille: user.taille,
             poids: user.poids,
             sexe: user.sexe,
@@ -135,7 +154,6 @@ struct UserController : RouteCollection {
             activityLevel: user.activityLevel
         )
     }
-    
     
     //DELETE/users/:id
     @Sendable
@@ -149,7 +167,7 @@ struct UserController : RouteCollection {
     
     //PATCH/users/:id
     @Sendable
-    func updatePublicUserById(_ req: Request) async throws -> UserPublicDTO {
+    func updateUserById(_ req: Request) async throws -> UserDTO {
         let dto = try req.content.decode(UserUpdateDTO.self)
         
         guard let id = req.parameters.get("id", as: UUID.self),
@@ -181,44 +199,22 @@ struct UserController : RouteCollection {
             }
             user.motDePasse = try Bcrypt.hash(newPassword)
         }
-        
         try await user.save(on: req.db)
-
-        return UserPublicDTO(
+        
+        return UserDTO(
             id: user.id,
             image: user.image,
             username: user.username,
             email: user.email,
             nom: user.nom,
-            prenom: user.prenom
+            prenom: user.prenom,
+            taille: user.taille,
+            poids: user.poids,
+            sexe: user.sexe,
+            dateNaissance: user.dateNaissance,
+            foodPreferences: user.foodPreferences,
+            activityLevel: user.activityLevel
         )
     }
-    
-    @Sendable
-       func updateHealthUser(_ req: Request) async throws -> UserHealthDTO {
-           let dto = try req.content.decode(UserUpdateDTO.self)
-           let payload = try req.auth.require(UserPayload.self)
-           guard let user = try await User.find(payload.id, on: req.db) else {
-               throw Abort(.notFound)
-           }
-           if let v = dto.taille { user.taille = v }
-                 if let v = dto.poids { user.poids = v }
-                 if let v = dto.sexe { user.sexe = v }
-                 if let v = dto.dateNaissance { user.dateNaissance = v }
-                 if let v = dto.foodPreferences { user.foodPreferences = v }
-                 if let v = dto.activityLevel { user.activityLevel = v }
-                 
-        
-        try await user.save(on: req.db)
-        
-            return UserHealthDTO(
-                id: user.id,
-                taille: user.taille,
-                poids: user.poids,
-                sexe: user.sexe,
-                dateNaissance: user.dateNaissance,
-                foodPreferences: user.foodPreferences,
-                activityLevel: user.activityLevel
-            )
-    }
 }
+   

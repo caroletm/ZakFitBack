@@ -11,7 +11,7 @@ import JWT
 final class JWTMiddleware: Middleware {
     func respond(to request: Request, chainingTo next: any Responder) -> EventLoopFuture<Response> {
         
-        guard let token = request.headers["Authorization"].first?.split(separator: "").last else {
+        guard let token = request.headers["Authorization"].first?.split(separator: " ").last else {
             return request.eventLoop.future(error: Abort(.unauthorized, reason: "Token manquant"))
         }
         let signer = JWTSigner.hs256(key: "LOUVRE123")
