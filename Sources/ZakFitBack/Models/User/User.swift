@@ -30,7 +30,9 @@ final class User : Model, Content, @unchecked Sendable {
     @Children(for : \.$user) var repas: [Repas]
     
     
-    init() {}
+    init() {
+        self.id = UUID()
+    }
     
     init(id: UUID? = nil, image: String, username: String, email: String, motDePasse: String, nom: String, prenom: String, taille: Int, poids: Double, dateNaissance: Date, sexe: UserGender, foodPreferences: UserPreferences, activityLevel: UserActivityLevel, role: UserRole) {
         self.id = id ?? UUID()
@@ -48,6 +50,7 @@ final class User : Model, Content, @unchecked Sendable {
         self.activityLevel = activityLevel
         self.role = role
     }
+    
 }
 
 

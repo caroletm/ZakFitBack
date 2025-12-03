@@ -7,35 +7,35 @@
 
 import Vapor
 
-struct UserDTO: Content {
-    var id: UUID?
-    var image : String
-    var username : String
-    var email : String
-    var motDePasse : String
-    var nom : String
-    var prenom : String
-    var taille : Int
-    var poids : Double
-    var sexe : UserGender
-    var dateNaissance : Date
-    var foodPreferences : UserPreferences
-    var activityLevel : UserActivityLevel
+struct UserCreateDTO: Content {
+    var image: String
+    var username: String
+    var email: String
+    var motDePasse: String
+    var nom: String
+    var prenom: String
+    var taille: Int
+    var poids: Double
+    var dateNaissance: Date
+    var sexe: UserGender
+    var foodPreferences: UserPreferences
+    var activityLevel: UserActivityLevel
 }
 
-struct UserCreateDTO : Content {
-    var image : String
-    var username : String
-    var email : String
-    var motDePasse : String
-    var nom : String
-    var prenom : String
-    var taille : Int
-    var poids : Double
-    var sexe : UserGender
-    var dateNaissance : Date
-    var foodPreferences : UserPreferences
-    var activityLevel : UserActivityLevel
+// DTO
+struct UserDTO: Content {
+    var id: UUID?
+    var image: String
+    var username: String
+    var email: String
+    var nom: String
+    var prenom: String
+    var taille: Int
+    var poids: Double
+    var sexe: UserGender
+    var dateNaissance: Date
+    var foodPreferences: UserPreferences
+    var activityLevel: UserActivityLevel
 }
 
 struct UserUpdateDTO : Content {

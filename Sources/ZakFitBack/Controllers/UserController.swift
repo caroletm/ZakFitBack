@@ -7,25 +7,45 @@
 
 import Fluent
 import Vapor
+import JWT
 
 struct UserController : RouteCollection {
     func boot(routes: any RoutesBuilder) throws {
         let users = routes.grouped("users")
         users.get(use: getAllUsers)
         users.post(use: createUser)
+        users.post("login", use: login)
+        
+        let protectedRoutes = users.grouped(JWTMiddleware())
+        protectedRoutes.get("profile", use: profile)
+        protectedRoutes.patch(":id", use: updateUserById)
         
         users.group(":id") { user in
             user.get(use: getUserById)
             user.delete(use: deleteUserById)
-            user.patch(use: updateUserById)
         }
     }
     
     //GET
     @Sendable
     func getAllUsers(_ req: Request) async throws -> [UserDTO] {
-        let user = try await User.query(on: req.db).all()
-        return user.map { UserDTO(id: $0.id, image: $0.image, username: $0.username, email: $0.email, motDePasse: $0.motDePasse, nom: $0.nom, prenom: $0.prenom, taille: $0.taille, poids: $0.poids, sexe: $0.sexe, dateNaissance: $0.dateNaissance, foodPreferences: $0.foodPreferences, activityLevel: $0.activityLevel)}
+        let users = try await User.query(on: req.db).all()
+        return users.map { user in
+            UserDTO(
+                id: user.id,
+                image: user.image,
+                username: user.username,
+                email: user.email,
+                nom: user.nom,
+                prenom: user.prenom,
+                taille: user.taille,
+                poids: user.poids,
+                sexe: user.sexe,
+                dateNaissance: user.dateNaissance,
+                foodPreferences: user.foodPreferences,
+                activityLevel: user.activityLevel
+            )
+        }
     }
     
     //GET BY ID
@@ -37,11 +57,10 @@ struct UserController : RouteCollection {
         return user
     }
     
-    
     // POST /users
     @Sendable
     func createUser(_ req: Request) async throws -> UserDTO {
-        let dto = try req.content.decode(UserDTO.self)
+        let dto = try req.content.decode(UserCreateDTO.self)
         
         if try await User.query(on: req.db)
             .filter(\.$email == dto.email)
@@ -49,20 +68,24 @@ struct UserController : RouteCollection {
             throw Abort(.badRequest, reason: "Un utilisateur avec cet email existe déjà")
         }
         
+        if dto.motDePasse.count < 8 {
+            throw Abort(.badRequest, reason: "Le mot de passe doit contenir au moins 8 caractères.")
+        }
+        let motDePasseHashed = try Bcrypt.hash(dto.motDePasse)
+        
         let user = User(
-            id: UUID(),
-            image : dto.image,
-            username : dto.username,
-            email : dto.email,
-            motDePasse : dto.motDePasse,
-            nom : dto.nom,
-            prenom : dto.prenom,
-            taille : dto.taille,
-            poids : dto.poids,
-            dateNaissance : dto.dateNaissance,
-            sexe : dto.sexe,
-            foodPreferences : dto.foodPreferences,
-            activityLevel : dto.activityLevel,
+            image: dto.image,
+            username: dto.username,
+            email: dto.email,
+            motDePasse: motDePasseHashed,
+            nom: dto.nom,
+            prenom: dto.prenom,
+            taille: dto.taille,
+            poids: dto.poids,
+            dateNaissance: dto.dateNaissance,
+            sexe: dto.sexe,
+            foodPreferences: dto.foodPreferences,
+            activityLevel: dto.activityLevel,
             role: .user
         )
         
@@ -70,18 +93,65 @@ struct UserController : RouteCollection {
         
         return UserDTO(
             id: user.id,
-            image : user.image,
-            username : user.username,
-            email : user.email,
-            motDePasse : user.motDePasse,
-            nom : user.nom,
-            prenom : user.prenom,
-            taille : user.taille,
-            poids : user.poids,
-            sexe : user.sexe,
-            dateNaissance : user.dateNaissance,
-            foodPreferences : user.foodPreferences,
-            activityLevel : user.activityLevel
+            image: user.image,
+            username: user.username,
+            email: user.email,
+            nom: user.nom,
+            prenom: user.prenom,
+            taille: user.taille,
+            poids: user.poids,
+            sexe: user.sexe,
+            dateNaissance: user.dateNaissance,
+            foodPreferences: user.foodPreferences,
+            activityLevel: user.activityLevel
+        )
+    }
+    
+    // LOGIN
+    struct LoginResponse: Content {
+        let token: String
+    }
+    
+    @Sendable
+    func login(req: Request) async throws -> LoginResponse {
+        let userData = try req.content.decode(LoginRequest.self)
+        
+        guard let user = try await User.query(on: req.db)
+            .filter(\.$email == userData.email)
+            .first() else {
+            throw Abort(.unauthorized, reason: "Email incorrect")
+        }
+        
+        guard try Bcrypt.verify(userData.motDePasse, created: user.motDePasse) else {
+            throw Abort(.unauthorized, reason: "Mot de passe incorrect")
+        }
+        
+        let payload = UserPayload(id: user.id!)
+        let signer = JWTSigner.hs256(key: "LOUVRE123")
+        let token = try signer.sign(payload)
+        return LoginResponse(token:token)
+    }
+    
+    //PROFILE
+    @Sendable
+    func profile(req: Request) async throws -> UserDTO {
+        let payload = try req.auth.require(UserPayload.self)
+        guard let user = try await User.find(payload.id, on: req.db) else {
+            throw Abort(.notFound)
+        }
+        return UserDTO(
+            id: user.id,
+            image: user.image,
+            username: user.username,
+            email: user.email,
+            nom: user.nom,
+            prenom: user.prenom,
+            taille: user.taille,
+            poids: user.poids,
+            sexe: user.sexe,
+            dateNaissance: user.dateNaissance,
+            foodPreferences: user.foodPreferences,
+            activityLevel: user.activityLevel
         )
     }
     
@@ -101,15 +171,14 @@ struct UserController : RouteCollection {
         let dto = try req.content.decode(UserUpdateDTO.self)
         
         guard let id = req.parameters.get("id", as: UUID.self),
-              let user = try await User.find(id, on: req.db)
-        else {
+              let user = try await User.find(id, on: req.db) else {
             throw Abort(.notFound)
         }
         
         if let newEmail = dto.email {
             if try await User.query(on: req.db)
                 .filter(\.$email == newEmail)
-                .filter(\.$id != id)   // exclure l'utilisateur lui-même
+                .filter(\.$id != id)
                 .first() != nil {
                 throw Abort(.badRequest, reason: "Cet email est déjà utilisé.")
             }
@@ -124,35 +193,28 @@ struct UserController : RouteCollection {
             }
         }
         
-        if let v = dto.image { user.image = v }
-        if let v = dto.username { user.username = v }
-        if let v = dto.email { user.email = v }
-        if let v = dto.motDePasse { user.motDePasse = v }
-        if let v = dto.nom { user.nom = v }
-        if let v = dto.prenom { user.prenom = v }
-        if let v = dto.taille { user.taille = v }
-        if let v = dto.poids { user.poids = v }
-        if let v = dto.sexe { user.sexe = v }
-        if let v = dto.dateNaissance { user.dateNaissance = v }
-        if let v = dto.foodPreferences { user.foodPreferences = v }
-        if let v = dto.activityLevel { user.activityLevel = v }
-        
+        if let newPassword = dto.motDePasse {
+            guard newPassword.count >= 8 else {
+                throw Abort(.badRequest, reason: "Le mot de passe doit contenir au moins 8 caractères.")
+            }
+            user.motDePasse = try Bcrypt.hash(newPassword)
+        }
         try await user.save(on: req.db)
         
         return UserDTO(
             id: user.id,
-            image : user.image,
-            username : user.username,
-            email : user.email,
-            motDePasse : user.motDePasse,
-            nom : user.nom,
-            prenom : user.prenom,
-            taille : user.taille,
-            poids : user.poids,
-            sexe : user.sexe,
-            dateNaissance : user.dateNaissance,
-            foodPreferences : user.foodPreferences,
-            activityLevel : user.activityLevel
+            image: user.image,
+            username: user.username,
+            email: user.email,
+            nom: user.nom,
+            prenom: user.prenom,
+            taille: user.taille,
+            poids: user.poids,
+            sexe: user.sexe,
+            dateNaissance: user.dateNaissance,
+            foodPreferences: user.foodPreferences,
+            activityLevel: user.activityLevel
         )
     }
 }
+   

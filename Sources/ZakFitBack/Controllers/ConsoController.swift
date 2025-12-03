@@ -10,13 +10,11 @@ import Fluent
 
 struct ConsoController : RouteCollection {
     func boot(routes: any RoutesBuilder) throws {
-                let conso = routes.grouped("conso")
-                conso.get(use: getAllConsos)
-                
-                conso.group(":id") { conso in
-                    conso.get(use: getConsoById)
-                    conso.delete(use: deleteConsoById)
-                }
+        let conso = routes.grouped("conso")
+        conso.get(use: getAllConsos)
+        conso.get(use: getConsoById)
+        conso.grouped(":id").delete(use: getConsoById)
+        
     }
     
     //    GET
@@ -35,13 +33,14 @@ struct ConsoController : RouteCollection {
         return conso
     }
 }
-    
+
 //    //DELETE/conso/:id
-    @Sendable
-    func deleteConsoById(_ req: Request) async throws -> Response {
-        guard let conso = try await Conso.find(req.parameters.get("id"), on: req.db) else {
-            throw Abort(.badRequest, reason: "Id invalide")
-        }
-        try await conso.delete(on: req.db)
-        return Response(status: .noContent)
+@Sendable
+func deleteConsoById(_ req: Request) async throws -> Response {
+    
+    guard let conso = try await Conso.find(req.parameters.get("id"), on: req.db) else {
+        throw Abort(.badRequest, reason: "Id invalide")
     }
+    try await conso.delete(on: req.db)
+    return Response(status: .noContent)
+}
