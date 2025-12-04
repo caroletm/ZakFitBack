@@ -22,7 +22,8 @@ struct ActiviteController : RouteCollection {
         }
     }
     
-    //GET
+    //GET/activite
+    //Récupère toutes les activités du user (filtré par son token)
     @Sendable
     func getAllActivites(_ req: Request) async throws -> [ActiviteDTO] {
         
@@ -37,7 +38,8 @@ struct ActiviteController : RouteCollection {
         }
     }
     
-    //GET BY ID
+    //GET/activite/id:
+    //Récupère toutes les activités du user (filtré par son token) filtré par l'ID de l'activité
     @Sendable
     func getActiviteById(_ req: Request) async throws -> Activite {
         
@@ -58,7 +60,8 @@ struct ActiviteController : RouteCollection {
         return activite
     }
     
-    // POST /activite
+    //POST/activite/
+    //Crée une activité pour le user (filtré par son token)
     @Sendable
     func createActivite(_ req: Request) async throws -> ActiviteDTO {
         let dto = try req.content.decode(ActiviteDTO.self)
@@ -69,11 +72,6 @@ struct ActiviteController : RouteCollection {
             throw Abort(.notFound, reason: "Utilisateur introuvable")
         }
         //        filtrer par le token de l'utilisateur)
-        
-        //        guard let user = try await User.query(on: req.db).first() else {
-        //            throw Abort(.notFound, reason: "Utilisateur introuvable")
-        //        }
-        //            //sans token
         
         let activite = Activite(
             id: UUID(),
@@ -96,6 +94,7 @@ struct ActiviteController : RouteCollection {
     }
     
     //DELETE/activite/:id
+    //Supprime une activité par l'id de l'activité
     @Sendable
     func deleteActiviteById(_ req: Request) async throws -> Response {
         

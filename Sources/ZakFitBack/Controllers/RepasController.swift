@@ -22,7 +22,8 @@ struct RepasController : RouteCollection {
         }
     }
 
-    //GET
+    //GET/repas
+    //Récupère tous les repas du user (filtré par son token)
     @Sendable
     func getAllRepas(_ req: Request) async throws -> [RepasDTO] {
         
@@ -56,7 +57,8 @@ struct RepasController : RouteCollection {
         }
     }
 
-    //GET BY ID
+    //GET/repas/id:
+    //Récupère toutes les repas du user (filtré par son token) filtré par l'ID du repas
     @Sendable
     func getRepasById(_ req: Request) async throws -> Repas {
         
@@ -77,19 +79,18 @@ struct RepasController : RouteCollection {
         return repas
     }
     
-    // POST /repas
+    //POST/repas/
+    //Crée une repas pour le user (filtré par son token)
     @Sendable
     func createRepas(_ req: Request) async throws -> RepasDTO {
         let dto = try req.content.decode(RepasDTO.self)
         
+        //        filtrer par le token de l'utilisateur)
         let payload = try req.auth.require(UserPayload.self)
         guard let user = try await User.find(payload.id, on: req.db) else {
             throw Abort(.notFound, reason: "Utilisateur introuvable")
-        } //        filtrer par le token de l'utilisateur)
+        }
         
-//        guard let user = try await User.query(on: req.db).first() else {
-//            throw Abort(.notFound, reason: "Utilisateur introuvable")
-//        } //sans token
         
         let repas = Repas(
             id: UUID(),
@@ -147,6 +148,7 @@ struct RepasController : RouteCollection {
     }
     
     //DELETE/repas/:id
+    //Supprime un repas par l'id du repas
     @Sendable
     func deleteRepasById(_ req: Request) async throws -> Response {
         

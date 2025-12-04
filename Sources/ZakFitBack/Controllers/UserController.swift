@@ -26,7 +26,10 @@ struct UserController : RouteCollection {
         }
     }
     
-    //GET
+    //GET/users
+    // Récupère tous les utilisateurs enregistrés.
+      // Accessible sans authentification.
+      // Retour : [UserDTO]
     @Sendable
     func getAllUsers(_ req: Request) async throws -> [UserDTO] {
         let users = try await User.query(on: req.db).all()
@@ -48,7 +51,8 @@ struct UserController : RouteCollection {
         }
     }
     
-    //GET BY ID
+    //GET/:id
+    //Recupere un user par son ID
     @Sendable
     func getUserById(_ req: Request) async throws -> User {
         guard let user = try await User.find(req.parameters.get("id"), on: req.db) else {
@@ -58,6 +62,10 @@ struct UserController : RouteCollection {
     }
     
     // POST /users
+    // Création d’un nouveau compte utilisateur.
+    // Vérifie :
+    //   - Email non déjà utilisé
+    //   - Mot de passe ≥ 8 caractères
     @Sendable
     func createUser(_ req: Request) async throws -> UserDTO {
         let dto = try req.content.decode(UserCreateDTO.self)
@@ -107,7 +115,14 @@ struct UserController : RouteCollection {
         )
     }
     
-    // LOGIN
+    // POST /users/login
+    // Authentifie un utilisateur.
+    // Vérifie :
+    //   - Email existe
+    //   - Mot de passe valide
+    //
+    // Retour :
+    //   { "token": "JWT_TOKEN" }
     struct LoginResponse: Content {
         let token: String
     }
@@ -132,7 +147,11 @@ struct UserController : RouteCollection {
         return LoginResponse(token:token)
     }
     
-    //PROFILE
+    // GET /users/profile
+       //Protégé par JWT
+       // Retourne le profil de l’utilisateur connecté.
+       //
+       // Retour : UserDTO
     @Sendable
     func profile(req: Request) async throws -> UserDTO {
         let payload = try req.auth.require(UserPayload.self)
@@ -155,7 +174,11 @@ struct UserController : RouteCollection {
         )
     }
     
-    //DELETE/users/:id
+    // DELETE /users/:id
+    // Supprime un utilisateur via son ID.
+    // Actuellement non protégé → à sécuriser plus tard.
+    //
+    // Retour : 204 No Content
     @Sendable
     func deleteUserById(_ req: Request) async throws -> Response {
         guard let user = try await User.find(req.parameters.get("id"), on: req.db) else {
@@ -165,7 +188,16 @@ struct UserController : RouteCollection {
         return Response(status: .noContent)
     }
     
-    //PATCH/users/:id
+    // PATCH /users/:id
+    // Protégé par JWT
+    // Permet de modifier :
+    //   - email (avec vérif unicité)
+//    - username (avec vérif unicité)
+//    - mot de passe (avec hash)
+//    - poids / taille / préférences / activité / etc.
+    // Vérifie que :
+    //   - l’ID demandé == ID du token (l’utilisateur ne modifie que son propre compte
+    // Retour : UserDTO
     @Sendable
     func updateUserById(_ req: Request) async throws -> UserDTO {
         let dto = try req.content.decode(UserUpdateDTO.self)

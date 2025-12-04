@@ -20,7 +20,8 @@ struct AlimentController : RouteCollection {
         }
     }
     
-    //    GET
+    //    GET/aliment
+    // recupere les aliments présents dans la base de données
     @Sendable
     func getAllAliments(_ req: Request) async throws -> [AlimentDTO] {
         let aliment = try await Aliment.query(on: req.db).all()
@@ -28,7 +29,8 @@ struct AlimentController : RouteCollection {
         }
     }
     
-    //GET BY ID
+    //GET/aliment/id:
+    //recupere un aliment par son iD
     @Sendable
     func getAlimentById(_ req: Request) async throws -> Aliment {
         guard let aliment = try await Aliment.find(req.parameters.get("id"), on: req.db) else {
@@ -38,6 +40,7 @@ struct AlimentController : RouteCollection {
     }
     
     // POST /aliment
+    //cree un aliment dans la base de données
     @Sendable
     func createAliment(_ req: Request) async throws -> AlimentDTO {
         let dto = try req.content.decode(AlimentDTO.self)
@@ -66,6 +69,7 @@ struct AlimentController : RouteCollection {
     }
     
     //DELETE/aliment/:id
+    //supprime un aliment par son ID
     @Sendable
     func deleteAlimentById(_ req: Request) async throws -> Response {
         guard let aliment = try await Aliment.find(req.parameters.get("id"), on: req.db) else {

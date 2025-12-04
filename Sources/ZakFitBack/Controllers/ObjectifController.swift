@@ -7,6 +7,7 @@
 
 import Fluent
 import Vapor
+import SQLKit
 
 struct ObjectifController : RouteCollection {
     func boot(routes: any RoutesBuilder) throws {
@@ -16,6 +17,7 @@ struct ObjectifController : RouteCollection {
         
         protectedRoute.get(use: getAllObjectifs)
         protectedRoute.post(use: createObjectif)
+        protectedRoute.delete(use: deleteAllObjectifs)
         
         protectedRoute.group(":id") { objectif in
             objectif.get(use: getObjectifById)
@@ -25,7 +27,8 @@ struct ObjectifController : RouteCollection {
     }
     
     
-    //GET
+    //GET/objectif
+    //Récupère tous les objectifs du user (filtré par son token)
     @Sendable
     func getAllObjectifs(_ req: Request) async throws -> [ObjectifDTO] {
         
@@ -40,7 +43,8 @@ struct ObjectifController : RouteCollection {
     }
     
     
-    //GET BY ID
+    //GET/objectif/id:
+    //Récupère toutes les objectifs du user (filtré par son token) filtré par l'ID de l'objectif
     @Sendable
     func getObjectifById(_ req: Request) async throws -> Objectif {
         
@@ -66,7 +70,8 @@ struct ObjectifController : RouteCollection {
     
 //
     
-    // POST /objectif
+    //POST/objectif/
+    //Crée une objectif pour le user (filtré par son token)
     @Sendable
     func createObjectif(_ req: Request) async throws -> ObjectifDTO {
         let dto = try req.content.decode(ObjectifDTO.self)
@@ -75,12 +80,6 @@ struct ObjectifController : RouteCollection {
         guard let user = try await User.find(payload.id, on: req.db) else {
             throw Abort(.notFound, reason: "Utilisateur introuvable")
         } //        filtrer par le token de l'utilisateur)
-        
-        
-        //        guard let user = try await User.query(on: req.db).first() else {
-        //            throw Abort(.notFound, reason: "Utilisateur introuvable")
-        //        }
-        //            //sans token
         
         let objectif = Objectif(
             id: UUID(),
@@ -118,6 +117,7 @@ struct ObjectifController : RouteCollection {
     }
     
     //DELETE/objectif/:id
+    //Supprime une objectif par l'id de l'objectif
     @Sendable
     func deleteObjectifById(_ req: Request) async throws -> Response {
         
@@ -141,8 +141,28 @@ struct ObjectifController : RouteCollection {
         return Response(status: .noContent)
     }
     
+    //DELETE/objectif/
+   //Supprime tous les objectifs
+    @Sendable
+    func deleteAllObjectifs(_ req: Request) async throws -> Response {
+        
+//        let dto = try req.content.decode(ObjectifDTO.self)
+//        
+//        let payload = try req.auth.require(UserPayload.self)
+//        guard let user = try await User.find(payload.id, on: req.db) else {
+//            throw Abort(.notFound, reason: "Utilisateur introuvable")
+//        }
+            
+            let sql = req.db as! (any SQLDatabase)
+            
+            try await sql.raw("DELETE FROM Objectif").run()
+            
+            return Response(status: .noContent)
+    }
+    
     
     //PATCH/objectif/:id
+    //Modifie un objectif par son ID
     @Sendable
     func updateObjectifById(_ req: Request) async throws -> ObjectifDTO {
         let dto = try req.content.decode(ObjectifUpdateDTO.self)
