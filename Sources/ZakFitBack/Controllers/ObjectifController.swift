@@ -36,7 +36,7 @@ struct ObjectifController : RouteCollection {
             .filter(\.$user.$id == userId)
             .all()
 
-        return objectifs.map { ObjectifDTO(id: $0.id, objectifGlobal: $0.objectifGlobal, dateDebut: $0.dateDebut, dateFin: $0.dateFin, typeObjectif: $0.typeObjectif, poidsCible: $0.poidsCible, caloriesParJour: $0.caloriesParJour, proteines: $0.caloriesParJour, glucides: $0.glucides, lipides: $0.lipides, minsActivité: $0.minsActivité, caloriesBruleesParJour: $0.caloriesBruleesParJour, nbEntrainementsHebdo: $0.nbEntrainementsHebdo) }
+        return objectifs.map { ObjectifDTO(id: $0.id, objectifGlobal: $0.objectifGlobal, dateDebut: $0.dateDebut, dateFin: $0.dateFin, typeObjectif: $0.typeObjectif, poidsCible: $0.poidsCible, caloriesParJour: $0.caloriesParJour, proteines: $0.proteines, glucides: $0.glucides, lipides: $0.lipides, minsActivité: $0.minsActivité, caloriesBruleesParJour: $0.caloriesBruleesParJour, nbEntrainementsHebdo: $0.nbEntrainementsHebdo) }
     }
     
     
@@ -66,7 +66,7 @@ struct ObjectifController : RouteCollection {
     
 //
     
-    // POST /users
+    // POST /objectif
     @Sendable
     func createObjectif(_ req: Request) async throws -> ObjectifDTO {
         let dto = try req.content.decode(ObjectifDTO.self)
@@ -94,7 +94,7 @@ struct ObjectifController : RouteCollection {
             glucides : dto.glucides,
             lipides : dto.lipides,
             minsActivité: dto.minsActivité,
-            caloriesBruleesParJour: dto.caloriesParJour,
+            caloriesBruleesParJour: dto.caloriesBruleesParJour,
             nbEntrainementsHebdo: dto.nbEntrainementsHebdo,
             user_Id : user.id!
         )
@@ -161,7 +161,6 @@ struct ObjectifController : RouteCollection {
             .first() else {
             throw Abort(.notFound)
         }
-        
         
         if let v = dto.objectifGlobal { objectif.objectifGlobal = v }
         if let v = dto.dateDebut { objectif.dateDebut = v }

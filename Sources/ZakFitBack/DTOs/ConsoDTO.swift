@@ -13,8 +13,8 @@ struct ConsoDTO: Content {
     var portion: Portion
     var quantite : Int
     var calories : Double
-    var glucides : Double
     var proteines : Double
+    var glucides : Double
     var lipides : Double
 }
 

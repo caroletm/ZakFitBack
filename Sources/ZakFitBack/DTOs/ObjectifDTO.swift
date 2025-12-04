@@ -23,6 +23,7 @@ struct ObjectifDTO: Content {
     var nbEntrainementsHebdo: Int?
 }
 
+
 struct ObjectifUpdateDTO: Content {
     var objectifGlobal: UserObjectifGlobal?
     var dateDebut: Date?

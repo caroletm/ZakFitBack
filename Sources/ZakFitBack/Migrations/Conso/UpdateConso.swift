@@ -34,3 +34,16 @@ struct UpdateConsoFKeyAliment: AsyncMigration {
             .update()
     }
 }
+
+struct UpdateConsoQuantite: AsyncMigration {
+    func prepare(on db: any Database) async throws {
+        try await db.schema("Conso")
+            .field("quantite", .int, .required)
+            .update()
+    }
+    func revert(on db: any Database) async throws {
+        try await db.schema("Conso")
+            .deleteField("quantite")
+            .update()
+    }
+}
