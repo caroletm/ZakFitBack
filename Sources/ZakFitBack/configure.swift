@@ -42,6 +42,7 @@ public func configure(_ app: Application) async throws {
     app.migrations.add(UpdateActivite())
     app.migrations.add(UpdateConsoFKeyRepas())
     app.migrations.add(UpdateConsoFKeyAliment())
+    app.migrations.add(UpdateConsoQuantite())
     
     try await app.autoMigrate()
     

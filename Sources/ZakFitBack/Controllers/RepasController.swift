@@ -47,8 +47,8 @@ struct RepasController : RouteCollection {
                         portion: conso.portion,
                         quantite: conso.quantite,
                         calories: conso.calories,
-                        glucides: conso.glucides,
                         proteines: conso.proteines,
+                        glucides: conso.glucides,
                         lipides: conso.lipides
                     )
                 }
@@ -138,8 +138,8 @@ struct RepasController : RouteCollection {
                     portion: conso.portion,
                     quantite: conso.quantite,
                     calories: conso.calories,
-                    glucides: conso.glucides,
                     proteines: conso.proteines,
+                    glucides: conso.glucides,
                     lipides: conso.lipides
                 )
             }

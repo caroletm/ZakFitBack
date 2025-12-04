@@ -13,14 +13,12 @@ struct ActiviteController : RouteCollection {
         let activite = routes.grouped("activite")
         
         let protectedRoutes = activite.grouped(JWTMiddleware())
-        protectedRoutes.get(use: getAllActivites)
-        protectedRoutes.post(use: createActivite)
+        protectedRoutes.get(use: getAllActivites)  // GET /activite
+        protectedRoutes.post(use: createActivite)  // POST /activite
         
-        protectedRoutes.group(":id") { activite in
-            protectedRoutes.get(use: getActiviteById)
-            protectedRoutes.delete(use: deleteActiviteById)
-//            protectedRoutes.patch(use: updateActiviteById)
-            
+        protectedRoutes.group(":id") { activiteId in
+            activiteId.get(use: getActiviteById)
+            activiteId.delete(use: deleteActiviteById)
         }
     }
     
@@ -45,11 +43,11 @@ struct ActiviteController : RouteCollection {
         
         let payload = try req.auth.require(UserPayload.self)
         let userId = payload.id
-    
+        
         guard let id = req.parameters.get("id", as: UUID.self) else {
             throw Abort(.badRequest, reason: "ID invalide")
         }
-    
+        
         guard let activite = try await Activite.query(on: req.db)
             .filter(\.$id == id)
             .filter(\.$user.$id == userId)
@@ -70,11 +68,11 @@ struct ActiviteController : RouteCollection {
         guard let user = try await User.find(payload.id, on: req.db) else {
             throw Abort(.notFound, reason: "Utilisateur introuvable")
         }
-//        filtrer par le token de l'utilisateur)
+        //        filtrer par le token de l'utilisateur)
         
-//        guard let user = try await User.query(on: req.db).first() else {
-//            throw Abort(.notFound, reason: "Utilisateur introuvable")
-//        }
+        //        guard let user = try await User.query(on: req.db).first() else {
+        //            throw Abort(.notFound, reason: "Utilisateur introuvable")
+        //        }
         //            //sans token
         
         let activite = Activite(
@@ -104,11 +102,11 @@ struct ActiviteController : RouteCollection {
         let payload = try req.auth.require(UserPayload.self)
         
         let userId = payload.id
-    
+        
         guard let id = req.parameters.get("id", as: UUID.self) else {
             throw Abort(.badRequest, reason: "ID invalide")
         }
-    
+        
         guard let activite = try await Activite.query(on: req.db)
             .filter(\.$id == id)
             .filter(\.$user.$id == userId)
@@ -120,30 +118,30 @@ struct ActiviteController : RouteCollection {
         return Response(status: .noContent)
     }
     
-//    //PATCH/activite/:id
-//    @Sendable
-//    func updateActiviteById(_ req: Request) async throws -> ActiviteDTO {
-//        let dto = try req.content.decode(ActiviteUpdateDTO.self)
-//        
-//        guard let id = req.parameters.get("id", as: UUID.self),
-//              let activite = try await Activite.find(id, on: req.db)
-//        else {
-//            throw Abort(.notFound)
-//        }
-//        
-//        if let v = dto.typeActivite { activite.typeActivite = v }
-//        if let v = dto.date { activite.date = v }
-//        if let v = dto.duree { activite.duree = v }
-//        if let v = dto.caloriesBrulees { activite.caloriesBrulees = v }
-//        
-//        try await activite.save(on: req.db)
-//        
-//        return  ActiviteDTO(
-//            id: activite.id,
-//            typeActivite: activite.typeActivite,
-//            date: activite.date,
-//            duree: activite.duree,
-//            caloriesBrulees: activite.caloriesBrulees
-//        )
-//    }
+    //    //PATCH/activite/:id
+    //    @Sendable
+    //    func updateActiviteById(_ req: Request) async throws -> ActiviteDTO {
+    //        let dto = try req.content.decode(ActiviteUpdateDTO.self)
+    //
+    //        guard let id = req.parameters.get("id", as: UUID.self),
+    //              let activite = try await Activite.find(id, on: req.db)
+    //        else {
+    //            throw Abort(.notFound)
+    //        }
+    //
+    //        if let v = dto.typeActivite { activite.typeActivite = v }
+    //        if let v = dto.date { activite.date = v }
+    //        if let v = dto.duree { activite.duree = v }
+    //        if let v = dto.caloriesBrulees { activite.caloriesBrulees = v }
+    //
+    //        try await activite.save(on: req.db)
+    //
+    //        return  ActiviteDTO(
+    //            id: activite.id,
+    //            typeActivite: activite.typeActivite,
+    //            date: activite.date,
+    //            duree: activite.duree,
+    //            caloriesBrulees: activite.caloriesBrulees
+    //        )
+    //    }
 }
