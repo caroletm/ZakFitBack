@@ -21,14 +21,16 @@ struct ConsoController : RouteCollection {
             }
         }
     
-    //    GET
+    //GET/conso
+    //Récupère toutes les conso du user (filtré par son token)
     @Sendable
     func getAllConsos(_ req: Request) async throws -> [ConsoDTO] {
         let conso = try await Conso.query(on: req.db).all()
         return conso.map { ConsoDTO(id: $0.id, aliment: $0.aliment, portion: $0.portion, quantite: $0.quantite, calories: $0.calories, proteines: $0.proteines, glucides: $0.glucides,  lipides: $0.lipides)}
     }
     
-    //GET BY ID
+    //GET/conso/id:
+    //Récupère toutes les consos du user (filtré par son token) filtré par l'ID de la conso
     @Sendable
     func getConsoById(_ req: Request) async throws -> Conso {
         guard let conso = try await Conso.find(req.parameters.get("id"), on: req.db) else {
@@ -39,6 +41,7 @@ struct ConsoController : RouteCollection {
 }
 
 //    //DELETE/conso/:id
+//Supprime une conso par l'id de la conso
 @Sendable
 func deleteConsoById(_ req: Request) async throws -> Response {
     
@@ -49,6 +52,8 @@ func deleteConsoById(_ req: Request) async throws -> Response {
     return Response(status: .noContent)
 }
     
+ //DELETE/conso/
+//Supprime toutes les consos
 @Sendable
 func deleteAllConsos(_ req: Request) async throws -> Response {
 
